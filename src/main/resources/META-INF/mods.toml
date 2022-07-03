@@ -68,3 +68,9 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed mollis lacinia magn
     versionRange="[1.19,1.20)"
     ordering="NONE"
     side="BOTH"
+[[dependencies.at]]
+    modId="patchouli"
+    mandatory=true
+    versionRange="[1.19-5.1.0,1.20)"
+    ordering="NONE"
+    side="BOTH"
