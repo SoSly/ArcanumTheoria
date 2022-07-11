@@ -1,0 +1,30 @@
+{
+  "display": {
+    "icon": {
+      "item": "patchouli:guide_book"
+    },
+    "title": {
+      "translate": "at:advancements.found_ritualist_guidebook.title"
+    },
+    "description": {
+      "translate": "at:advancements.found_ritualist_guidebook.description"
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": true
+  },
+  "rewards": {
+    "experience": 10,
+    "loot": [
+      "at:ritualist"
+    ]
+  },
+  "criteria": {
+    "found_ritualist_guidebook": {
+      "trigger": "at:found_ritualist_guidebook",
+      "conditions": {}
+    }
+  },
+  "requirements": []
+}
