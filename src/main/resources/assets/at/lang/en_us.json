@@ -1,4 +1,6 @@
 {
   "at:advancements.found_ritualist_guidebook.title": "Ritual Magic",
-  "at:advancements.found_ritualist_guidebook.description": "Find a special book in a bookshelf."
+  "at:advancements.found_ritualist_guidebook.description": "Find a special book in a bookshelf.",
+
+  "item.at.flint_chisel": "flint chisel"
 }

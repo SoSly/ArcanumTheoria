@@ -30,7 +30,7 @@ import org.sosly.at.capabilities.entities.rituals.RitualistProvider;
 @Mod.EventBusSubscriber(modid = ArcanumTheoria.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class RitualistCapabilityEvents {
     @SubscribeEvent
-    public static void onAttachCapability(AttachCapabilitiesEvent<?> event) {
+    public static void onAttachCapability(AttachCapabilitiesEvent<Player> event) {
         event.addCapability(IRitualistCapability.RITUALIST_CAPABILITY, new RitualistProvider());
     }
 

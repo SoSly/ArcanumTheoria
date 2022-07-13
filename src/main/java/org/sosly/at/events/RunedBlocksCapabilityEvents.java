@@ -5,20 +5,20 @@
  *           conditions; detailed at https://www.gnu.org/licenses/gpl-3.0.html
  */
 
-package org.sosly.at.capabilities;
+package org.sosly.at.events;
 
-import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
+import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import org.sosly.at.ArcanumTheoria;
-import org.sosly.at.api.capabilities.IRitualistCapability;
 import org.sosly.at.api.capabilities.IRunedBlocksCapability;
+import org.sosly.at.capabilities.entities.rituals.RunedBlocksProvider;
 
-@Mod.EventBusSubscriber(modid = ArcanumTheoria.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
-public class CapabilityRegistry {
+@Mod.EventBusSubscriber(modid = ArcanumTheoria.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
+public class RunedBlocksCapabilityEvents {
     @SubscribeEvent
-    public void registerCapabilities(RegisterCapabilitiesEvent event) {
-        event.register(IRitualistCapability.class);
-        event.register(IRunedBlocksCapability.class);
+    public static void onAttachCapability(AttachCapabilitiesEvent<LevelChunk> event) {
+        event.addCapability(IRunedBlocksCapability.RUNED_BLOCKS_CAPABILITY, new RunedBlocksProvider());
     }
 }

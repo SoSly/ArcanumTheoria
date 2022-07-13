@@ -8,8 +8,11 @@
 package org.sosly.at;
 
 import com.mojang.logging.LogUtils;
+import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.slf4j.Logger;
+import org.sosly.at.items.ItemRegistry;
 
 @Mod(ArcanumTheoria.MODID)
 public class ArcanumTheoria {
@@ -17,5 +20,8 @@ public class ArcanumTheoria {
     private static final Logger LOGGER = LogUtils.getLogger();
 
     public ArcanumTheoria() {
+        // Initialize registries
+        IEventBus modbus = FMLJavaModLoadingContext.get().getModEventBus();
+        ItemRegistry.ITEMS.register(modbus);
     }
 }
