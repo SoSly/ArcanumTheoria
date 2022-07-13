@@ -13,6 +13,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.slf4j.Logger;
 import org.sosly.at.items.ItemRegistry;
+import org.sosly.at.magic.RuneRegistry;
 
 @Mod(ArcanumTheoria.MODID)
 public class ArcanumTheoria {
@@ -23,5 +24,6 @@ public class ArcanumTheoria {
         // Initialize registries
         IEventBus modbus = FMLJavaModLoadingContext.get().getModEventBus();
         ItemRegistry.ITEMS.register(modbus);
+        RuneRegistry.RUNES.register(modbus);
     }
 }

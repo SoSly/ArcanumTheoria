@@ -22,9 +22,11 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraftforge.common.TierSortingRegistry;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import org.jetbrains.annotations.NotNull;
-import org.sosly.at.api.capabilities.IRunedBlocksCapability;
+import org.sosly.at.api.magic.Rune;
 import org.sosly.at.capabilities.entities.rituals.RunedBlocksProvider;
+import org.sosly.at.magic.RuneRegistry;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -54,27 +56,26 @@ public class ChiselItem extends TieredItem {
         AtomicBoolean result = new AtomicBoolean(false);
         LevelChunk chunk = level.getChunkAt(pos);
         chunk.getCapability(RunedBlocksProvider.RUNED_BLOCKS).ifPresent(cap -> {
-            IRunedBlocksCapability.Rune rune = cap.getRuneAtBlockPos(pos, face);
+            if (level.isClientSide) {
+                result.set(true);
+                return;
+            }
+
+            Rune rune = cap.getRuneAtBlockPos(pos, face);
             if (rune != null) {
                 // no point in continuing; we already have a rune here.
                 return;
             }
 
-            if (level.isClientSide) {
-                // the rest of this should only be run server-side
-                result.set(true);
-                return;
-            }
-
-            if (state.getDestroySpeed(level, pos) != 0.0F) {
-                stack.hurtAndBreak(1, entity, (p) -> {
-                    p.broadcastBreakEvent(hand);
-                });
-            }
-
-            result.set(cap.setRuneAtBlockPos(pos, face, IRunedBlocksCapability.Rune.BREAK)); // todo: need to make the rune selection more dynamic than this
+            result.set(cap.setRuneAtBlockPos(pos, face, RuneRegistry.BREAK.get())); // todo: need to make the rune selection more dynamic than this
             // todo: push the capability to the client
         });
+
+        if (result.get() && state.getDestroySpeed(level, pos) != 0.0F) {
+            stack.hurtAndBreak(1, entity, (p) -> {
+                p.broadcastBreakEvent(hand);
+            });
+        }
 
         return result.get();
     }

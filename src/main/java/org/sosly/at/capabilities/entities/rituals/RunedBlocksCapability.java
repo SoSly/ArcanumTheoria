@@ -12,6 +12,7 @@ import com.mojang.logging.LogUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import org.sosly.at.api.capabilities.IRunedBlocksCapability;
+import org.sosly.at.api.magic.Rune;
 
 import java.util.HashMap;
 import java.util.Map;

@@ -12,6 +12,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import org.sosly.at.ArcanumTheoria;
+import org.sosly.at.api.magic.Rune;
 
 import java.util.Map;
 
@@ -29,7 +30,7 @@ public interface IRunedBlocksCapability {
     // todo: This should move to an object stored in the API and initialized at startup time, so that addons can register their own runes
     //       Individual runes should include not just a name, but also a ResourceLocation, which should probably replace the string
     //       representation of this enum in the Provider.
-    static enum Rune {
-        BREAK
-    }
+//    static enum Rune {
+//        BREAK
+//    }
 }

@@ -11,6 +11,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityManager;
 import net.minecraftforge.common.capabilities.CapabilityToken;
@@ -19,6 +20,8 @@ import net.minecraftforge.common.util.LazyOptional;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.sosly.at.api.capabilities.IRunedBlocksCapability;
+import org.sosly.at.api.magic.Rune;
+import org.sosly.at.api.registries.Registries;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -43,24 +46,14 @@ public class RunedBlocksProvider implements ICapabilitySerializable<Tag> {
             blockNBT.putInt("x", pos.getX());
             blockNBT.putInt("y", pos.getY());
             blockNBT.putInt("z", pos.getZ());
-            if (runedFaces.containsKey(Direction.NORTH)) {
-                blockNBT.putString("NORTH", runedFaces.get(Direction.NORTH).toString());
-            }
-            if (runedFaces.containsKey(Direction.SOUTH)) {
-                blockNBT.putString("SOUTH", runedFaces.get(Direction.SOUTH).toString());
-            }
-            if (runedFaces.containsKey(Direction.EAST)) {
-                blockNBT.putString("EAST", runedFaces.get(Direction.EAST).toString());
-            }
-            if (runedFaces.containsKey(Direction.WEST)) {
-                blockNBT.putString("WEST", runedFaces.get(Direction.WEST).toString());
-            }
-            if (runedFaces.containsKey(Direction.UP)) {
-                blockNBT.putString("UP", runedFaces.get(Direction.UP).toString());
-            }
-            if (runedFaces.containsKey(Direction.DOWN)) {
-                blockNBT.putString("DOWN", runedFaces.get(Direction.DOWN).toString());
-            }
+
+            Direction.stream().forEach((direction) -> {
+                ResourceLocation rune = Registries.RUNES.getKey(runedFaces.get(direction));
+                if (rune != null) {
+                    blockNBT.putString(direction.getName(), rune.toString());
+                }
+            });
+
             int idx = blocks.getAndIncrement();
             nbt.put(Integer.toHexString(idx), blockNBT);
         });
@@ -72,7 +65,7 @@ public class RunedBlocksProvider implements ICapabilitySerializable<Tag> {
     public void deserializeNBT(Tag nbt) {
         IRunedBlocksCapability instance = this.holder.orElse(new RunedBlocksCapability());
 
-        Map<BlockPos, Map<Direction, IRunedBlocksCapability.Rune>> runedBlocks = new HashMap<>();
+        Map<BlockPos, Map<Direction, Rune>> runedBlocks = new HashMap<>();
         if (nbt instanceof CompoundTag cnbt) {
             int blocks = cnbt.getInt("blocks");
             do {
@@ -81,32 +74,17 @@ public class RunedBlocksProvider implements ICapabilitySerializable<Tag> {
                     int y = blockNBT.getInt("y");
                     int z = blockNBT.getInt("z");
                     BlockPos pos = new BlockPos(x, y, z);
-                    Map<Direction, IRunedBlocksCapability.Rune> RunedFaces = new HashMap<>();
+                    Map<Direction, Rune> RunedFaces = new HashMap<>();
 
-                    String north = blockNBT.getString("north");
-                    if (!north.equals("")) {
-                        RunedFaces.put(Direction.NORTH, IRunedBlocksCapability.Rune.valueOf(north));
-                    }
-                    String south = blockNBT.getString("south");
-                    if (!south.equals("")) {
-                        RunedFaces.put(Direction.SOUTH, IRunedBlocksCapability.Rune.valueOf(south));
-                    }
-                    String east = blockNBT.getString("east");
-                    if (!east.equals("")) {
-                        RunedFaces.put(Direction.EAST, IRunedBlocksCapability.Rune.valueOf(east));
-                    }
-                    String west = blockNBT.getString("west");
-                    if (!west.equals("")) {
-                        RunedFaces.put(Direction.WEST, IRunedBlocksCapability.Rune.valueOf(west));
-                    }
-                    String up = blockNBT.getString("up");
-                    if (!up.equals("")) {
-                        RunedFaces.put(Direction.UP, IRunedBlocksCapability.Rune.valueOf(up));
-                    }
-                    String down = blockNBT.getString("down");
-                    if (!down.equals("")) {
-                        RunedFaces.put(Direction.DOWN, IRunedBlocksCapability.Rune.valueOf(down));
-                    }
+                    Direction.stream().forEach((direction) -> {
+                        String runeLoc = blockNBT.getString(direction.getName());
+                        if (!runeLoc.equals("")) {
+                            Rune rune = Registries.RUNES.getValue(new ResourceLocation(runeLoc));
+                            if (rune != null) {
+                                RunedFaces.put(direction, rune);
+                            }
+                        }
+                    });
 
                     if (!RunedFaces.isEmpty()) {
                         runedBlocks.put(pos, RunedFaces);
