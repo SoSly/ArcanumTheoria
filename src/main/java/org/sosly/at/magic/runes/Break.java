@@ -8,6 +8,7 @@
 package org.sosly.at.magic.runes;
 
 import com.mojang.logging.LogUtils;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -34,6 +35,8 @@ import java.util.List;
 import java.util.Set;
 
 public class Break extends Rune {
+    private static final RenderType RENDER_TYPE = setTexture("textures/rune/break.png");
+
     @Override
     public boolean activate(Player player, Level level, BlockPos oPos, List<Rune> runes) {
         level.getCapability(RunedBlocksProvider.RUNED_BLOCKS).ifPresent(cap -> {
@@ -45,6 +48,11 @@ public class Break extends Rune {
             PacketHandler.network.send(PacketDistributor.ALL.noArg(), new SyncRunedBlocksToClient(cap));
         });
         return true;
+    }
+
+    @Override
+    public RenderType getRenderType() {
+        return RENDER_TYPE;
     }
 
     private static Set<BlockPos> getMarkedNeighbors(Level level, IRunedBlocksCapability cap, BlockPos pos) {

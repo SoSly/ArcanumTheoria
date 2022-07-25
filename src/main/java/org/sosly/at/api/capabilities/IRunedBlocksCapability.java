@@ -27,8 +27,8 @@ public interface IRunedBlocksCapability {
     ImmutableMap<Direction, Rune> getRunesAtBlockPos(BlockPos pos);
     boolean setRuneAtBlockPos(BlockPos pos, Direction direction, Rune rune);
 
-    // todo: This should move to an object stored in the API and initialized at startup time, so that addons can register their own runes
-    //       Individual runes should include not just a name, but also a ResourceLocation, which should probably replace the string
+    // todo: This should move to an object stored in the API and initialized at startup time, so that addons can register their own rune
+    //       Individual rune should include not just a name, but also a ResourceLocation, which should probably replace the string
     //       representation of this enum in the Provider.
 //    static enum Rune {
 //        BREAK

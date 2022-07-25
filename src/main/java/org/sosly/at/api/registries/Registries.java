@@ -24,7 +24,7 @@ public class Registries {
     public static IForgeRegistry<Rune> RUNES;
 
     public static class Keys {
-        public static final ResourceLocation RUNES = new ResourceLocation(ArcanumTheoria.MODID, "runes");
+        public static final ResourceLocation RUNES = new ResourceLocation(ArcanumTheoria.MODID, "rune");
     }
 
     @SubscribeEvent

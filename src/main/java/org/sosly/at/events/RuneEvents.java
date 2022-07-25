@@ -15,17 +15,22 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.ViewArea;
+import net.minecraft.client.renderer.block.BlockRenderDispatcher;
+import net.minecraft.client.renderer.block.ModelBlockRenderer;
+import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.culling.Frustum;
-import net.minecraft.client.resources.model.ModelBakery;
+import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
@@ -36,7 +41,6 @@ import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.network.PacketDistributor;
-import org.apache.logging.log4j.core.jmx.Server;
 import org.sosly.at.ArcanumTheoria;
 import org.sosly.at.api.capabilities.IRunedBlocksCapability;
 import org.sosly.at.api.magic.Rune;
@@ -44,15 +48,14 @@ import org.sosly.at.capabilities.entities.rituals.RunedBlocksProvider;
 import org.sosly.at.networking.PacketHandler;
 import org.sosly.at.networking.messages.clientbound.SyncRunedBlocksToClient;
 
-import java.lang.reflect.Array;
-import java.util.Arrays;
+import java.util.BitSet;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 
 @Mod.EventBusSubscriber(modid = ArcanumTheoria.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class RuneEvents {
-    private static final MultiBufferSource.BufferSource crumblingBufferSource = MultiBufferSource.immediate(new BufferBuilder(256));
+    private static final MultiBufferSource.BufferSource runeBufferSource = MultiBufferSource.immediate(new BufferBuilder(256));
+    private static final RandomSource random = RandomSource.create();
 
     @SubscribeEvent
     public static void onAttachCapability(AttachCapabilitiesEvent<Level> event) {
@@ -116,18 +119,39 @@ public class RuneEvents {
                             if (frustum.isVisible(new AABB(pos))) {
                                 BlockState state = level.getBlockState(pos);
                                 PoseStack.Pose pose = stack.last();
+                                BlockRenderDispatcher renderDispatcher = Minecraft.getInstance().getBlockRenderer();
 
-                                VertexConsumer consumer = new SheetedDecalTextureGenerator(crumblingBufferSource.getBuffer(ModelBakery.DESTROY_TYPES.get(5)), pose.pose(), pose.normal());
-
+                                VertexConsumer consumer = new SheetedDecalTextureGenerator(runeBufferSource.getBuffer(rune.getRenderType()), pose.pose(), pose.normal());
                                 stack.pushPose();
                                 stack.translate(pos.getX() - cameraPosition.x(), pos.getY() - cameraPosition.y(), pos.getZ() - cameraPosition.z());
-                                Minecraft.getInstance().getBlockRenderer().renderBreakingTexture(state, pos, level, stack, consumer, ModelData.EMPTY);
+
+                                if (state.getRenderShape() == RenderShape.MODEL) {
+                                    BakedModel bakedmodel = renderDispatcher.getBlockModelShaper().getBlockModel(state);
+                                    List<BakedQuad> quads = bakedmodel.getQuads(state, face, random, ModelData.EMPTY, null);
+                                    BlockPos.MutableBlockPos mPos = pos.mutable();
+                                    mPos.setWithOffset(pos, face);
+
+                                    boolean useAO = Minecraft.useAmbientOcclusion() && state.getLightEmission(level, pos) == 0 && bakedmodel.useAmbientOcclusion(state, null);
+
+                                    if (Block.shouldRenderFace(state, level, pos, face, mPos)) {
+                                        float[] afloat = new float[Direction.values().length * 2];
+                                        BitSet bitset = new BitSet(3);
+
+                                        if (useAO) {
+                                            ModelBlockRenderer.AmbientOcclusionFace aoface = new ModelBlockRenderer.AmbientOcclusionFace();
+                                            renderDispatcher.getModelRenderer().renderModelFaceAO(level, state, pos, stack, consumer, quads, afloat, bitset, aoface, OverlayTexture.NO_OVERLAY);
+                                        } else {
+                                            int i = LevelRenderer.getLightColor(level, state, mPos);
+                                            renderDispatcher.getModelRenderer().renderModelFaceFlat(level, state, pos, i, OverlayTexture.NO_OVERLAY, false, stack, consumer, quads, bitset);
+                                        }
+                                    }
+                                }
                                 stack.popPose();
                             }
                         });
                     });
                 });
-                crumblingBufferSource.endBatch();
+                runeBufferSource.endBatch();
             }
         }
     }
