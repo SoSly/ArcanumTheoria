@@ -39,8 +39,8 @@ minecraft {
             property 'forge.enabledGameTestNamespaces', "${mod_id}"
 
             // add mixins for patchouli
-            property 'mixin.env.remapRefMap', 'true'
-            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
+//            property 'mixin.env.remapRefMap', 'true'
+//            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
 
             mods {
                 "${mod_id}" {
@@ -141,8 +141,8 @@ dependencies {
     // http://www.gradle.org/docs/current/userguide/dependency_management.html
 
     implementation 'org.jetbrains:annotations:23.0.0'
-    compileOnly fg.deobf("vazkii.patchouli:Patchouli:${deps_minecraft_version}-${deps_patchouli_version}:api")
-    runtimeOnly fg.deobf("vazkii.patchouli:Patchouli:${deps_minecraft_version}-${deps_patchouli_version}")
+//    compileOnly fg.deobf("vazkii.patchouli:Patchouli:${deps_minecraft_version}-${deps_patchouli_version}:api")
+//    runtimeOnly fg.deobf("vazkii.patchouli:Patchouli:${deps_minecraft_version}-${deps_patchouli_version}")
 }
 
 // Example for how to get properties into the manifest for reading at runtime.

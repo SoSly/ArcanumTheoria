@@ -27,13 +27,14 @@ public class RunedBlocksCapability implements IRunedBlocksCapability {
 
     @Override
     public void setAllRunedBlocks(Map<BlockPos, Map<Direction, Rune>> blockedRunes) {
+        runedBlocks.clear();
         runedBlocks.putAll(blockedRunes);
     }
 
     @Override
     public boolean clearRuneAtBlockPos(BlockPos pos, Direction direction) {
         Map<Direction, Rune> runedFaces = runedBlocks.get(pos);
-        if (runedFaces.isEmpty()) {
+        if (runedFaces == null || runedFaces.isEmpty()) {
             return true;
         }
 
@@ -43,7 +44,11 @@ public class RunedBlocksCapability implements IRunedBlocksCapability {
 
         try {
             runedFaces.remove(direction);
-            runedBlocks.put(pos, runedFaces);
+            if (runedFaces.size() > 0) {
+                runedBlocks.put(pos, runedFaces);
+            } else {
+                runedBlocks.remove(pos);
+            }
             return true;
         } catch (Exception e) {
             LogUtils.getLogger().warn("unable to clear rune on block at pos={} face={}", pos, direction);

@@ -36,7 +36,7 @@ public class RitualistCapabilityEvents {
 
     @SubscribeEvent
     public static void onLoad(PlayerEvent.PlayerLoggedInEvent event) {
-        Player player = event.getPlayer();
+        Player player = event.getEntity();
         player.getCapability(RitualistProvider.RITUALIST).ifPresent(p -> {
             if (p.hasRitualKnowledge(IRitualistCapability.Basic)) {
                 p.remRitualKnowledge(IRitualistCapability.Basic);
@@ -47,7 +47,7 @@ public class RitualistCapabilityEvents {
     @SubscribeEvent
     public static void onRightClick(RightClickBlock event) {
         BlockPos pos = event.getPos();
-        Player player = event.getPlayer();
+        Player player = event.getEntity();
         Level level = player.getLevel();
         BlockState blockState = level.getBlockState(pos);
         Block block = blockState.getBlock();

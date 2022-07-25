@@ -7,6 +7,7 @@
 
 package org.sosly.at.magic.runes;
 
+import com.mojang.logging.LogUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -19,10 +20,14 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.world.BlockEvent;
+import net.minecraftforge.event.level.BlockEvent;
+import net.minecraftforge.network.PacketDistributor;
+import org.sosly.at.api.capabilities.IRunedBlocksCapability;
 import org.sosly.at.api.magic.Rune;
 import org.sosly.at.capabilities.entities.rituals.RunedBlocksProvider;
 import org.sosly.at.magic.RuneRegistry;
+import org.sosly.at.networking.PacketHandler;
+import org.sosly.at.networking.messages.clientbound.SyncRunedBlocksToClient;
 
 import java.util.HashSet;
 import java.util.List;
@@ -31,38 +36,41 @@ import java.util.Set;
 public class Break extends Rune {
     @Override
     public boolean activate(Player player, Level level, BlockPos oPos, List<Rune> runes) {
-        getMarkedNeighbors(level, oPos).forEach(pos -> destroyBlock(player, level, pos, -1, -1));
+        level.getCapability(RunedBlocksProvider.RUNED_BLOCKS).ifPresent(cap -> {
+            try {
+                getMarkedNeighbors(level, cap, oPos).forEach(pos -> destroyBlock(player, level, cap, pos, -1, -1));
+            } catch (Exception err) {
+                LogUtils.getLogger().warn("received error destroying blocks: {}", err);
+            }
+            PacketHandler.network.send(PacketDistributor.ALL.noArg(), new SyncRunedBlocksToClient(cap));
+        });
         return true;
     }
 
-    private static Set<BlockPos> getMarkedNeighbors(Level level, BlockPos pos) {
+    private static Set<BlockPos> getMarkedNeighbors(Level level, IRunedBlocksCapability cap, BlockPos pos) {
         Set<BlockPos> blocks = new HashSet<>();
-        return getMarkedNeighbors(level, pos, blocks);
+        return getMarkedNeighbors(level, cap, pos, blocks);
     }
 
-    private static Set<BlockPos> getMarkedNeighbors(Level level, BlockPos oPos, Set<BlockPos> blocks) {
+    private static Set<BlockPos> getMarkedNeighbors(Level level, IRunedBlocksCapability cap, BlockPos oPos, Set<BlockPos> blocks) {
         blocks.add(oPos);
 
         Direction.stream().forEach(direction -> {
             BlockPos pos = oPos.relative(direction);
             if (level.getBlockState(pos).getBlock() != Blocks.AIR) {
-                level.getChunkAt(pos).getCapability(RunedBlocksProvider.RUNED_BLOCKS).ifPresent(p -> {
-                    if (p.getRunesAtBlockPos(pos).values().stream().anyMatch(t -> t == RuneRegistry.BREAK.get())) {
-                        if (!blocks.contains(pos)) {
-                            getMarkedNeighbors(level, pos, blocks);
-                        }
+                if (cap.getRunesAtBlockPos(pos).values().stream().anyMatch(t -> t == RuneRegistry.BREAK.get())) {
+                    if (!blocks.contains(pos)) {
+                        getMarkedNeighbors(level, cap, pos, blocks);
                     }
-                });
+                }
             }
         });
 
         return blocks;
     }
 
-    private static boolean destroyBlock(Player player, Level level, BlockPos pos, int fortune, int silk) {
+    private static boolean destroyBlock(Player player, Level level, IRunedBlocksCapability cap, BlockPos pos, int fortune, int silk) {
         BlockState state = level.getBlockState(pos);
-        float hardness = state.getDestroySpeed(level, pos);
-
         BlockEvent.BreakEvent event = new BlockEvent.BreakEvent(level, pos, state, player);
         if (MinecraftForge.EVENT_BUS.post(event)) {
             return false;
@@ -86,6 +94,7 @@ public class Break extends Rune {
                 if (!level.isOutsideBuildHeight(pos)) {
                     level.sendBlockUpdated(pos, state, state, 3);
                 }
+                Direction.stream().forEach(direction -> cap.clearRuneAtBlockPos(pos, direction));
                 return true;
             }
         }

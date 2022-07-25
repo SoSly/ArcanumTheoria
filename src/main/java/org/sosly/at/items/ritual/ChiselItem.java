@@ -7,6 +7,7 @@
 
 package org.sosly.at.items.ritual;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
@@ -22,11 +23,14 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraftforge.common.TierSortingRegistry;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
+import net.minecraftforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 import org.sosly.at.api.magic.Rune;
 import org.sosly.at.capabilities.entities.rituals.RunedBlocksProvider;
 import org.sosly.at.magic.RuneRegistry;
+import org.sosly.at.networking.PacketHandler;
+import org.sosly.at.networking.messages.BaseMessage;
+import org.sosly.at.networking.messages.clientbound.SyncRunedBlocksToClient;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -54,8 +58,7 @@ public class ChiselItem extends TieredItem {
 
     public boolean chiselBlock(ItemStack stack, BlockState state, BlockPos pos, Direction face, Level level, LivingEntity entity, InteractionHand hand) {
         AtomicBoolean result = new AtomicBoolean(false);
-        LevelChunk chunk = level.getChunkAt(pos);
-        chunk.getCapability(RunedBlocksProvider.RUNED_BLOCKS).ifPresent(cap -> {
+        level.getCapability(RunedBlocksProvider.RUNED_BLOCKS).ifPresent(cap -> {
             if (level.isClientSide) {
                 result.set(true);
                 return;
@@ -68,7 +71,7 @@ public class ChiselItem extends TieredItem {
             }
 
             result.set(cap.setRuneAtBlockPos(pos, face, RuneRegistry.BREAK.get())); // todo: need to make the rune selection more dynamic than this
-            // todo: push the capability to the client
+            PacketHandler.network.send(PacketDistributor.DIMENSION.with(() -> entity.getLevel().dimension()), new SyncRunedBlocksToClient(cap));
         });
 
         if (result.get() && state.getDestroySpeed(level, pos) != 0.0F) {

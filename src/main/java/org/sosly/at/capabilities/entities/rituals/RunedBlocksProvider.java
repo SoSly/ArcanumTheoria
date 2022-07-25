@@ -39,6 +39,10 @@ public class RunedBlocksProvider implements ICapabilitySerializable<Tag> {
     @Override
     public Tag serializeNBT() {
         IRunedBlocksCapability instance = this.holder.orElse(new RunedBlocksCapability());
+        return RunedBlocksProvider.serializeNBT(instance);
+    }
+
+    public static Tag serializeNBT(IRunedBlocksCapability instance) {
         CompoundTag nbt = new CompoundTag();
         AtomicInteger blocks = new AtomicInteger(0);
         instance.getAllRunedBlocks().forEach((pos, runedFaces) -> {
